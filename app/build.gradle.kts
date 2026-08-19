@@ -30,6 +30,16 @@ android {
         ndk { abiFilters.addAll(setOf("arm64-v8a", "armeabi-v7a")) }
     }
 
+    // توحيد إصدارات Java و Kotlin على JVM 17 لحل التضارب
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+
     buildFeatures {
         compose = true
         buildConfig = true
