@@ -1,0 +1,8 @@
+# ===================================
+# Telegram API Configuration
+# ===================================
+# احصل على البيانات من: https://my.telegram.org/apps
+# ثم أنشئ ملف local.properties واستبدل القيم التالية
+
+TELEGRAM_API_ID=YOUR_API_ID_HERE
+TELEGRAM_API_HASH=YOUR_API_HASH_HERE

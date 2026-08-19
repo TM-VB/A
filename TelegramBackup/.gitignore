@@ -1,0 +1,28 @@
+# Gradle files
+.gradle/
+build/
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# Android Studio
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# The .vscode folder contains launch configuration and tasks
+.vscode/
+
+# Misc
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Kotlin
+out/
+
+# Gradle wrapper
+!gradle-wrapper.jar
+gradle-wrapper.properties
