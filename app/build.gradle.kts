@@ -76,4 +76,7 @@ dependencies {
 
     implementation("androidx.work:work-runtime-ktx:2.9.0")
     implementation("io.coil-kt:coil-compose:2.6.0")
+    
+    // TDLib - Telegram Database Library
+    implementation("org.drinkless.tdlib:td:1.8.0")
 }
