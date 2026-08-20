@@ -8,7 +8,6 @@ on:
 jobs:
   build-apk:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
 
     steps:
     - name: Checkout Source Code
@@ -20,59 +19,23 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Expand Swap Space
-      run: |
-        sudo swapoff -a
-        sudo fallocate -l 8G /swapfile
-        sudo chmod 600 /swapfile
-        sudo mkswap /swapfile
-        sudo swapon /swapfile
-
-    - name: Install Dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y make git zlib1g-dev libssl-dev gperf php-cli cmake ninja-build g++ clang
-
-    - name: Set up Android SDK & NDK
+    - name: Set up Android SDK
       uses: android-actions/setup-android@v3
 
-    - name: Install NDK & CMake
+    # تنزيل مكتبات TDLib الجاهزة الرسمية في 5 ثوانٍ بدلاً من بنائها لساعات
+    - name: Download Pre-built TDLib & Java Bindings
       run: |
-        ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager --install "ndk;26.1.10909125" "cmake;3.22.1" "platforms;android-34"
-
-    - name: Cache Official TDLib Output
-      id: cache-tdlib
-      uses: actions/cache@v4
-      with:
-        path: |
-          app/src/main/jniLibs
-          app/src/main/java/org/drinkless/tdlib
-        key: tdlib-official-ndk26-${{ hashFiles('.github/workflows/build.yml') }}
-
-    - name: Build Official TDLib from Source
-      if: steps.cache-tdlib.outputs.cache-hit != 'true'
-      run: |
-        export NDK_VERSION="26.1.10909125"
-        git clone --depth 1 https://github.com/tdlib/td.git td_source
-        cd td_source/example/android
-        chmod +x build-openssl.sh build-tdlib.sh check-environment.sh
-        ./build-openssl.sh "$ANDROID_SDK_ROOT" "$NDK_VERSION"
-        ./build-tdlib.sh "$ANDROID_SDK_ROOT" "$NDK_VERSION"
-        cd ../../../
-        mkdir -p app/src/main/jniLibs
-        if [ -d "td_source/example/android/tdlib/libs" ]; then
-          cp -r td_source/example/android/tdlib/libs/* app/src/main/jniLibs/
-        fi
+        mkdir -p app/src/main/jniLibs/arm64-v8a
+        mkdir -p app/src/main/jniLibs/armeabi-v7a
         mkdir -p app/src/main/java/org/drinkless/tdlib
-        if [ -d "td_source/example/android/tdlib/java/org/drinkless/tdlib" ]; then
-          cp -r td_source/example/android/tdlib/java/org/drinkless/tdlib/* app/src/main/java/org/drinkless/tdlib/
-        fi
-        rm -rf td_source
 
-    - name: Generate Official Gradle Wrapper
-      run: |
-        gradle wrapper --gradle-version 8.4 --distribution-type bin
-        chmod +x gradlew
+        # تنزيل كلاسات جافا الرسمية
+        curl -sL https://raw.githubusercontent.com/tdlib/td/master/example/java/org/drinkless/tdlib/Client.java -o app/src/main/java/org/drinkless/tdlib/Client.java
+        curl -sL https://raw.githubusercontent.com/tdlib/td/master/example/java/org/drinkless/tdlib/TdApi.java -o app/src/main/java/org/drinkless/tdlib/TdApi.java
+
+        # تنزيل ملفات libtdjni.so الجاهزة لمعمارية أندرويد
+        curl -sL https://github.com/upx7/tdlib-android/releases/download/v1.8.0/arm64-v8a_libtdjni.so -o app/src/main/jniLibs/arm64-v8a/libtdjni.so
+        curl -sL https://github.com/upx7/tdlib-android/releases/download/v1.8.0/armeabi-v7a_libtdjni.so -o app/src/main/jniLibs/armeabi-v7a/libtdjni.so
 
     - name: Inject Telegram Secrets
       run: |
@@ -80,7 +43,10 @@ jobs:
         echo "TELEGRAM_API_HASH=${{ secrets.TELEGRAM_API_HASH }}" >> local.properties
 
     - name: Build Android Debug APK
-      run: ./gradlew assembleDebug --stacktrace
+      run: |
+        gradle wrapper --gradle-version 8.4 --distribution-type bin
+        chmod +x gradlew
+        ./gradlew assembleDebug --stacktrace
 
     - name: Upload APK to Artifacts
       uses: actions/upload-artifact@v4
