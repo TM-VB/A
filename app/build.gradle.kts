@@ -76,7 +76,4 @@ dependencies {
 
     implementation("androidx.work:work-runtime-ktx:2.9.0")
     implementation("io.coil-kt:coil-compose:2.6.0")
-    
-    // TDLib - مكتبة تيليجرام (حل مشكلة Unresolved reference: TdApi)
-    implementation("org.drinkless.tdlib:td:1.8.25")
 }
